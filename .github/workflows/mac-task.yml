@@ -1,0 +1,54 @@
+name: Free Apple Silicon Task
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mac-task:
+    runs-on: macos-14
+    timeout-minutes: 10
+
+    steps:
+      - name: Download repository files
+        uses: actions/checkout@v4
+
+      - name: Check the Mac environment
+        run: |
+          echo "Processor architecture:"
+          uname -m
+
+          echo "macOS version:"
+          sw_vers
+
+          echo "Xcode version:"
+          xcodebuild -version
+
+          echo "Python version:"
+          python3 --version
+
+      - name: Run an example task
+        run: |
+          mkdir -p output
+          python3 - <<'PY'
+          import platform
+          from pathlib import Path
+
+          result = (
+              "Your task ran successfully!\n"
+              f"System: {platform.system()}\n"
+              f"Architecture: {platform.machine()}\n"
+          )
+
+          print(result)
+          Path("output/result.txt").write_text(result)
+          PY
+
+      - name: Save the result for download
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-task-result
+          path: output/
+          retention-days: 1
